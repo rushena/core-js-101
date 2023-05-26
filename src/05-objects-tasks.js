@@ -115,32 +115,89 @@ function fromJSON(proto, json) {
  */
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  result: {},
+  err1: 'Element, id and pseudo-element should not occur more then one time inside the selector',
+  err2: 'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element',
+
+  createNewObj() {
+    const newObj = Object.create(this);
+    newObj.result = { ...this.result };
+
+    return newObj;
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  element(value) {
+    if (this.result.tag) {
+      throw new Error(this.err1);
+    }
+    // eslint-disable-next-line max-len
+    if (this.result.psE || this.result.psC || this.result.attr || this.result.id || this.result.class) {
+      throw new Error(this.err2);
+    }
+    const newObj = this.createNewObj();
+    newObj.result.tag = value;
+    return newObj;
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    if (this.result.psE || this.result.psC || this.result.attr || this.result.class) {
+      throw new Error(this.err2);
+    }
+    if (this.result.id) {
+      throw new Error(this.err1);
+    }
+    const newObj = this.createNewObj();
+    newObj.result.id = `#${value}`;
+    return newObj;
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    if (this.result.psE || this.result.psC || this.result.attr) {
+      throw new Error(this.err2);
+    }
+    const newObj = this.createNewObj();
+    newObj.result.class = `${newObj.result.class || ''}.${value}`;
+    return newObj;
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    if (this.result.psE || this.result.psC) {
+      throw new Error(this.err2);
+    }
+    const newObj = this.createNewObj();
+    newObj.result.attr = `[${value}]`;
+    return newObj;
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    if (this.result.psE) {
+      throw new Error(this.err2);
+    }
+    const newObj = this.createNewObj();
+    newObj.result.psC = `${newObj.result.psC || ''}:${value}`;
+    return newObj;
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    if (this.result.psE) {
+      throw new Error(this.err1);
+    }
+    const newObj = this.createNewObj();
+    newObj.result.psE = `::${value}`;
+    return newObj;
+  },
+
+  stringify() {
+    const obj = this.result;
+    const res = `${obj.tag || ''}${obj.id || ''}${obj.class || ''}${obj.attr || ''}${obj.psC || ''}${obj.psE || ''}${obj.combine || ''}`;
+    this.result = {};
+    return res;
+  },
+
+  combine(selector1, combinator, selector2) {
+    const newObj = this.createNewObj();
+    newObj.result.combine = `${selector1.stringify()} ${combinator} ${selector2.stringify()}`;
+    return newObj;
   },
 };
 
