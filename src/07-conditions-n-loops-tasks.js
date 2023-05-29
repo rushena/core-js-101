@@ -284,7 +284,6 @@ function reverseInteger(num) {
  *
  * See algorithm here : https://en.wikipedia.org/wiki/Luhn_algorithm
  *
- * @param {number} cnn
  * @return {boolean}
  *
  * @example:
@@ -297,6 +296,7 @@ function reverseInteger(num) {
  *   4571234567890111 => false
  *   5436468789016589 => false
  *   4916123456789012 => false
+ * @param ccn
  */
 function isCreditCardNumber(ccn) {
   const arr = `${ccn}`.split('').map((item) => +item);
@@ -318,7 +318,6 @@ function isCreditCardNumber(ccn) {
  *   step1 : find sum of all digits
  *   step2 : if sum > 9 then goto step1 otherwise return the sum
  *
- * @param {number} n
  * @return {number}
  *
  * @example:
@@ -326,6 +325,7 @@ function isCreditCardNumber(ccn) {
  *   23456 ( 2+3+4+5+6 = 20, 2+0 = 2) => 2
  *   10000 ( 1+0+0+0+0 = 1 ) => 1
  *   165536 (1+6+5+5+3+6 = 26,  2+6 = 8) => 8
+ * @param num
  */
 function getDigitalRoot(num) {
   const res = `${num}`.split('').reduce((acc, item) => +item + acc, 0);
@@ -400,8 +400,19 @@ function isBracketsBalanced(str) {
  *    365, 4  => '11231'
  *    365, 10 => '365'
  */
-function toNaryString(/* num, n */) {
-  throw new Error('Not implemented');
+function toNaryString(num, n) {
+  if (n === 10) return num;
+  const fn = (acc, x) => {
+    if (x < n) {
+      acc.push(x);
+      return acc;
+    }
+
+    acc.push(x % n);
+    return fn(acc, Math.floor(x / n));
+  };
+
+  return fn([], num).reverse().join('');
 }
 
 
@@ -417,8 +428,30 @@ function toNaryString(/* num, n */) {
  *   ['/web/assets/style.css', '/.bin/mocha',  '/read.me'] => '/'
  *   ['/web/favicon.ico', '/web-scripts/dump', '/verbalizer/logs'] => '/'
  */
-function getCommonDirectoryPath(/* pathes */) {
-  throw new Error('Not implemented');
+function getCommonDirectoryPath(pathes) {
+  const res = pathes.map((item) => item.split('/').slice(0, -1));
+  const first = res[0];
+  let counter = 1;
+  let result = '';
+
+
+  while (counter) {
+    if (counter > first.length) {
+      break;
+    }
+
+    const value = first[counter - 1];
+
+    // eslint-disable-next-line no-loop-func
+    if (res.every((item) => item[counter - 1] === value)) {
+      result = `${result}${value}/`;
+      counter += 1;
+    } else {
+      counter = false;
+    }
+  }
+
+  return result;
 }
 
 
@@ -440,8 +473,18 @@ function getCommonDirectoryPath(/* pathes */) {
  *                         [ 6 ]]
  *
  */
-function getMatrixProduct(/* m1, m2 */) {
-  throw new Error('Not implemented');
+function getMatrixProduct(m1, m2) {
+  const result = m1.reduce((acc, item) => {
+    const res = item.map((emp, q) => item.reduce((acc2, _, w) => acc2 + (item[w] * m2[w][q]), 0));
+    acc.push(res);
+    return acc;
+  }, []);
+
+  result.forEach((item, k) => {
+    result[k] = item.filter((elem) => !Number.isNaN(elem));
+  });
+
+  return result;
 }
 
 
@@ -475,8 +518,36 @@ function getMatrixProduct(/* m1, m2 */) {
  *    [    ,   ,    ]]
  *
  */
-function evaluateTicTacToePosition(/* position */) {
-  throw new Error('Not implemented');
+function evaluateTicTacToePosition(a) {
+  const fn = ([x, y, z]) => {
+    if (x === undefined || y === undefined || z === undefined) return undefined;
+    if (x === y && x === z) return x;
+
+    return undefined;
+  };
+
+  const res = [
+    fn([a[0][0], a[0][1], a[0][2]]),
+    fn([a[1][0], a[1][1], a[1][2]]),
+    fn([a[2][0], a[2][1], a[2][2]]),
+    fn([a[0][0], a[1][0], a[2][0]]),
+    fn([a[0][1], a[1][1], a[2][1]]),
+    fn([a[0][2], a[1][2], a[2][2]]),
+    fn([a[0][0], a[1][1], a[2][2]]),
+    fn([a[0][2], a[1][1], a[2][0]]),
+  ];
+
+  return res.reduce((acc, item) => {
+    if (item === undefined && acc === undefined) {
+      return undefined;
+    }
+
+    if (item === undefined && acc !== undefined) {
+      return acc;
+    }
+
+    return item;
+  }, undefined);
 }
 
 
